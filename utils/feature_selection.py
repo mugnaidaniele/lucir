@@ -1,7 +1,7 @@
 import numpy as np
 from torch.utils.data import DataLoader
-from cvs.eval import extract_features
-from cvs.utils import ImagesDataset
+from validate import extract_features
+from utils import ExemplarSet as ImagesDataset
 
 
 def perform_selection(args, images, labels, net, transform):
@@ -9,7 +9,7 @@ def perform_selection(args, images, labels, net, transform):
         indexes = np.random.permutation(len(images))[:args.rehearsal]
     else:
         dataset_class_c = ImagesDataset(images, labels, transform)
-        loader = DataLoader(dataset_class_c, batch_size=args.batch_size_val, shuffle=False, drop_last=False)
+        loader = DataLoader(dataset_class_c, batch_size=args.batch_size, shuffle=False, drop_last=False)
         features = extract_features(args, net, loader)
         if args.selection == "closest":
             indexes = closest_to_mean(features, args.rehearsal)
@@ -24,7 +24,7 @@ def _l2_distance(x, y):
 
 def icarl_selection(features, nb_examplars):
     D = features.T
-    # D = D / (np.linalg.norm(D, axis=0) + 1e-8) # FIXME, qui le features vengono normalizzate in realtà le nostre sono già normalizzate
+    D = D / (np.linalg.norm(D, axis=0) + 1e-8)
     mu = np.mean(D, axis=1)
     herding_matrix = np.zeros((features.shape[0],))
 

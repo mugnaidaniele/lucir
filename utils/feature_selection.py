@@ -1,7 +1,8 @@
 import numpy as np
 from torch.utils.data import DataLoader
+from torchvision import transforms
 from validate import extract_features
-from utils import ExemplarSet as ImagesDataset
+from utils.ExemplarSet import ExemplarSet as ImagesDataset
 
 
 def perform_selection(args, images, labels, net, transform):

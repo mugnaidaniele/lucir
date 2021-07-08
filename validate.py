@@ -7,10 +7,13 @@ def validate():
 
 def extract_features(args, net, loader):
     features = None
+    net.cuda()
     net.eval()
+    
     with torch.no_grad():
         for inputs, targets in loader:
-            inputs = inputs.cuda(args.device)
+            #inputs = inputs.cuda(args.device)
+            inputs = inputs.cuda()
             f, _ = net(inputs)
             #f = l2_norm(f)
             if features is not None:

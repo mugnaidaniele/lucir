@@ -1,7 +1,7 @@
 import torch
 import numpy as np
 from torchvision import datasets, models, transforms
-
+from continuum.datasets import CIFAR100
 def accuracy(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
     with torch.no_grad():
@@ -57,7 +57,7 @@ def get_all_images_per_class(task_set, target):
     return images_of_class, labels_of_class
 
 def getTransform(dataset):
-    if dataset == "imagent":
+    if dataset == "imagenet":
         normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225])
 
@@ -80,26 +80,34 @@ def getTransform(dataset):
         normalize,
         ])
 
-    elif dataset == "cifar":
+    elif dataset == "cifar100":
         normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225])
 
-        train_transform = transforms.Compose([
+        train_transform =[
                             transforms.RandomCrop(32, padding=4),
                             transforms.RandomHorizontalFlip(),
                             transforms.ToTensor(),
                             transforms.Normalize((0.5071,  0.4866,  0.4409), (0.2009,  0.1984,  0.2023)),
-])
-        val_transform =transforms.Compose([
+                        ]
+        val_transform =[
                         transforms.ToTensor(),
                         transforms.Normalize((0.5071,  0.4866,  0.4409), (0.2009,  0.1984,  0.2023)),
-        ])
-        test_transform =transforms.Compose([
+        ]
+        test_transform =[
                         transforms.ToTensor(),
                         transforms.Normalize((0.5071,  0.4866,  0.4409), (0.2009,  0.1984,  0.2023)),
-        ])
+        ]
 
         pass
     else:
         raise "Dataset not recognized"
     return train_transform, val_transform, test_transform
+
+def get_dataset(dataset):
+    if dataset == "cifar100":
+        dataset_train = CIFAR100("data", download=True, train=True)
+        dataset_test = CIFAR100("data", download=True, train=True)
+    else:
+        pass
+    return dataset_train, dataset_test

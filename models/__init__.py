@@ -1,1 +1,1 @@
-from .incremental_resnet import ResNet32Cifar
+from .incremental_resnet import create

@@ -1,6 +1,7 @@
 import torch
 import torch.nn.functional as F
 
+
 def EmbeddingsSimilarity(feature_a, feature_b):
     return F.cosine_embedding_loss(
         feature_a, feature_b,

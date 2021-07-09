@@ -31,10 +31,10 @@ parser.add_argument('--momentum', type=float, default=0.01, metavar='LR', help='
 parser.add_argument('--epochs', type=int, default=70, metavar='BATCH', help='batch size')
 parser.add_argument('--lamda_base', type=float, default=0.01, metavar='LR', help='learning rate for cnn')
 parser.add_argument('--margin', type=float, default=0.2, metavar='LR', help='learning rate for cnn')
-parser.add_argument('--gamma', type=float, default=0.01, metavar='LR', help='learning rate for cnn')
+parser.add_argument('--gamma', type=float, default=0.1, metavar='LR', help='learning rate for cnn')
 parser.add_argument('--k-negatives', type=int, default=2, metavar='BATCH', help='batch size')
 
-parser.add_argument('--rehearsal', type=int, default=1, metavar='BATCH', help='batch size')
+parser.add_argument('--rehearsal', type=int, default=20, metavar='BATCH', help='batch size')
 parser.add_argument('--selection', type=str, default="closest", metavar='BATCH', help='batch size')
 parser.add_argument("--exR", action="store_true", default=True, help="experience replay")
 parser.add_argument("--cosine", action="store_true", default=False, help="experience replay")
@@ -55,6 +55,9 @@ criterion_cls = nn.CrossEntropyLoss()
 previous_net = None
 
 for task_id, train_taskset in enumerate(scenario_train):
+    val_taskset = scenario_val[:task_id+1]
+    '''
+
     print(task_id)
     optimizer = optim.SGD(model.parameters(), lr=args.lr, momentum=args.momentum)
     scheduler_lr = MultiStepLR(optimizer, milestones=scheduling, gamma=args.gamma)
@@ -70,9 +73,8 @@ for task_id, train_taskset in enumerate(scenario_train):
     # best_acc_on_task = 0
     for epoch in range(args.n_epochs):
         train(args, train_loader, memory_loader, model, task_id, criterion_cls, previous_net, optimizer, epoch, lamda)
-        acc_val, loss_val = validate(model, val_loader=None)  # passare loader fino a task t
-    #     if acc_val > best_acc_on_task:
-    #         best_acc_on_task = acc_val
+        acc_val, loss_val = validate(model, val_loader=None)
+
     if task_id < scenario_train.nb_tasks - 1:
         if args.exR:
             for c in train_taskset.get_classes():
@@ -82,3 +84,4 @@ for task_id, train_taskset in enumerate(scenario_train):
             previous_net = copy.deepcopy(model)
             model.expand_classes(scenario_train.nb_classes)
             model.cuda()
+    '''

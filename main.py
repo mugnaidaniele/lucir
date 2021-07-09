@@ -27,12 +27,12 @@ parser.add_argument('--start', type=int, default=50, metavar='INC', help='increm
 parser.add_argument('--increment', type=int, default=10, metavar='INC', help='increment classes')
 parser.add_argument('--batch_size', type=int, default=128, metavar='BATCH', help='batch size')
 parser.add_argument('--lr', type=float, default=0.01, metavar='LR', help='learning rate for cnn')
-parser.add_argument('--momentum', type=float, default=0.01, metavar='LR', help='learning rate for cnn')
+parser.add_argument('--momentum', type=float, default=0.01, metavar='LR', help='momentum')
 parser.add_argument('--epochs', type=int, default=70, metavar='BATCH', help='batch size')
 parser.add_argument('--lamda_base', type=float, default=0.01, metavar='LR', help='learning rate for cnn')
-parser.add_argument('--margin', type=float, default=0.01, metavar='LR', help='learning rate for cnn')
+parser.add_argument('--margin', type=float, default=0.2, metavar='LR', help='learning rate for cnn')
 parser.add_argument('--gamma', type=float, default=0.01, metavar='LR', help='learning rate for cnn')
-parser.add_argument('--k-negatives', type=int, default=70, metavar='BATCH', help='batch size')
+parser.add_argument('--k-negatives', type=int, default=2, metavar='BATCH', help='batch size')
 
 parser.add_argument('--rehearsal', type=int, default=1, metavar='BATCH', help='batch size')
 parser.add_argument('--selection', type=str, default="closest", metavar='BATCH', help='batch size')
@@ -70,7 +70,7 @@ for task_id, train_taskset in enumerate(scenario_train):
     # best_acc_on_task = 0
     for epoch in range(args.n_epochs):
         train(args, train_loader, memory_loader, model, task_id, criterion_cls, previous_net, optimizer, epoch, lamda)
-        acc_val, loss_val = validate(model, val_loader=None) # passare loader fino a task t
+        acc_val, loss_val = validate(model, val_loader=None)  # passare loader fino a task t
     #     if acc_val > best_acc_on_task:
     #         best_acc_on_task = acc_val
     if task_id < scenario_train.nb_tasks - 1:

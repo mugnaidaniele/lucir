@@ -1,17 +1,20 @@
+import enum
 import torch
+import torch.nn as nn
 from utils.AverageMeter import AverageMeter
 from utils.utils import accuracy
 
 
-def validate(args, net, val_loader, criterion):
+def validate(net, val_loader):
+    criterion = nn.CrossEntropyLoss()
     acc_meter = AverageMeter()
     loss_meter = AverageMeter()
 
     net.cuda()
     net.eval
     with torch.no_grad():
-        for inputs, targets in val_loader:
-            inputs = inputs.cuda()
+        for batch_id, (inputs, targets, t) in enumerate(val_loader):
+            inputs, targets = inputs.cuda(), targets.cuda()
             _, output = net(inputs)
             acc_val = accuracy(output, targets, topk=(1,))  # forse mettere anche top5
             loss = criterion(output, targets)

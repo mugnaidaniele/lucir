@@ -107,7 +107,7 @@ def getTransform(dataset):
 def get_dataset(dataset):
     if dataset == "cifar100":
         dataset_train = CIFAR100("data", download=True, train=True)
-        dataset_test = CIFAR100("data", download=True, train=True)
+        dataset_test = CIFAR100("data", download=True, train=False)
     else:
         pass
     return dataset_train, dataset_test

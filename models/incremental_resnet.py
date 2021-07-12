@@ -26,7 +26,7 @@ class Incremental_ResNet(nn.Module):
         if self.cosine:
             x_norm = F.normalize(x, p=2, dim=1)
             with torch.no_grad():
-                self.fc1.weight.div_(torch.norm(self.fc2.weight, dim=1, keepdim=True))
+                self.fc1.weight.div_(torch.norm(self.fc1.weight, dim=1, keepdim=True))
             y = self.eta * self.fc1(x_norm)
         else:
             y = self.fc1(x)
@@ -47,7 +47,7 @@ class Incremental_ResNet(nn.Module):
         if self.cosine:
             x_norm = F.normalize(x, p=2, dim=1)  # FIXME *T radius can be T not 1
             with torch.no_grad():
-                self.fc1.weight.div_(torch.norm(self.fc2.weight, dim=1, keepdim=True))
+                self.fc1.weight.div_(torch.norm(self.fc1.weight, dim=1, keepdim=True))
             y = self.eta * self.fc1(x_norm)
 
         return x, y
@@ -63,8 +63,8 @@ def ResNet18Incremental(starting_classes=10, cosine=True):
 
 
 __factory = {
-    'imagenet': "resnet32",
-    'cifar100': "resnet18"
+    'imagenet': "resnet18",
+    'cifar100': "resnet32"
 }
 
 def create(dataset, classes, cosine):

@@ -11,12 +11,14 @@ def validate(net, val_loader):
     loss_meter = AverageMeter()
 
     net.cuda()
-    net.eval
+    net.eval()
     with torch.no_grad():
         for batch_id, (inputs, targets, t) in enumerate(val_loader):
             inputs, targets = inputs.cuda(), targets.cuda()
             _, output = net(inputs)
-            acc_val = accuracy(output, targets, topk=(1,))  # forse mettere anche top5
+            acc_val = accuracy(output, targets, topk=(1,))  
+            #acc_training = accuracy(output, targets, topk=(1,))
+
             loss = criterion(output, targets)
             acc_meter.update(acc_val[0].item(), inputs.size(0))
             loss_meter.update(loss.item(), inputs.size(0))

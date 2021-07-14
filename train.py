@@ -8,7 +8,7 @@ from loss.less_forget import EmbeddingsSimilarity
 from loss.margin_lucir import ucir_ranking
 
 
-def train(args, loader_train, loader_memory, net, task_id, criterion_cls, previous_net, optimizer, epoch, lamda, scheduler_lr):
+def train(args, loader_train, loader_memory, net, task_id, criterion_cls, previous_net, optimizer, epoch, lamda):
     acc_meter = AverageMeter()
     loss_meter = AverageMeter()
     net.train()
@@ -28,25 +28,26 @@ def train(args, loader_train, loader_memory, net, task_id, criterion_cls, previo
             if args.less_forg:
                 loss_less_forget = EmbeddingsSimilarity(l2_norm(feature_old), l2_norm(feature))
                 loss += lamda * loss_less_forget
-        if args.ranking:
-            loss_margin = ucir_ranking(logits=output,
-                                       targets=targets,
-                                       task_size=args.increment,
-                                       nb_negatives=max(2, args.increment),
-                                       margin=0.5
-                                       )
-            loss += loss_margin
+            if args.ranking:
+                index = int(args.batch_size // 2)
+                loss_margin = ucir_ranking(logits=output[index:],
+                                        targets=targets[index:],
+                                        task_size=args.increment,
+                                        nb_negatives=max(2, args.increment),
+                                        margin=0.5
+                                        )
+                loss += loss_margin
     #     if args.mimic:
     #         pass
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        scheduler_lr.step()
+        
         acc_training = accuracy(output, targets, topk=(1,))
         acc_meter.update(acc_training[0].item(), inputs.size(0))
         loss_meter.update(loss.item(), inputs.size(0))
-    if (batch_id+1)%(len(loader_train)//2)   == 0:
-        print(f"TRAIN \t Epoch: {epoch}/{args.epochs}\t loss: {loss_meter.avg}\t acc: {acc_meter.avg}")
+    
+    print(f"TRAIN \t Epoch: {epoch}/{args.epochs}\t loss: {loss_meter.avg}\t acc: {acc_meter.avg}")
 
 
 

@@ -28,7 +28,7 @@ parser.add_argument('--increment', type=int, default=50, metavar='INC', help='in
 parser.add_argument('--batch_size', type=int, default=128, metavar='BATCH', help='batch size')
 parser.add_argument('--lr', type=float, default=0.1, metavar='LR', help='learning rate for cnn')
 parser.add_argument('--momentum', type=float, default=0.9 , metavar='LR', help='momentum')
-parser.add_argument('--epochs', type=int, default=1, metavar='BATCH', help='batch size')
+parser.add_argument('--epochs', type=int, default=160, metavar='BATCH', help='batch size')
 parser.add_argument('--lamda_base', type=float, default=5.0, metavar='LR', help='learning rate for cnn')
 parser.add_argument('--margin', type=float, default=0.2, metavar='LR', help='learning rate for cnn')
 parser.add_argument('--gamma', type=float, default=0.1, metavar='LR', help='learning rate for cnn')
@@ -91,3 +91,4 @@ for task_id, train_taskset in enumerate(scenario_train):
         model.expand_classes(scenario_train[task_id+1].nb_classes)
         model.cuda()
 print(accs)
+print(np.mean(np.array(accs)))

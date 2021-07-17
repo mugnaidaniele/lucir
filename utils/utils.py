@@ -2,6 +2,8 @@ import torch
 import numpy as np
 from torchvision import datasets, models, transforms
 from continuum.datasets import CIFAR100
+from torch.utils.data import WeightedRandomSampler
+
 def accuracy(output, target, topk=(1,)):
     """Computes the precision@k for the specified values of k"""
     with torch.no_grad():
@@ -111,3 +113,28 @@ def get_dataset(dataset):
     else:
         pass
     return dataset_train, dataset_test
+
+def get_sampler(target):
+    class_sample_count = np.array(
+    [len(np.where(target == t)[0]) for t in np.unique(target)])
+    weight = 1. / class_sample_count
+    samples_weight = np.array([weight[t] for t in target])
+
+    samples_weight = torch.from_numpy(samples_weight)
+    samples_weigth = samples_weight.double()
+    sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
+    return sampler
+
+
+def save_model(net, task_id):
+    net_state_dict = net.state_dict()
+    checkpoint ={
+        'net_state_dict': net_state_dict,
+                }
+    ckpt_path = f"ckpt_task_{task_id}.pt" 
+    torch.save(checkpoint, ckpt_path)
+
+def load_model(net, task_id):
+    ckpt_path = f"ckpt_task_{task_id}.pt"
+    net.load_state_dict(torch.load(ckpt_path)['net_state_dict'])
+    return net

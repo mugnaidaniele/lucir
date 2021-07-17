@@ -3,22 +3,16 @@ import torch
 import torch.nn.functional as F
 from torch.nn.modules.loss import MSELoss
 from utils.AverageMeter import AverageMeter
-from utils.utils import extract_batch_from_memory, accuracy
+from utils.utils import extract_batch_from_memory, accuracy, save_model
 from loss.less_forget import EmbeddingsSimilarity
 from loss.margin_lucir import ucir_ranking
 
 
-def train(args, loader_train, loader_memory, net, task_id, criterion_cls, previous_net, optimizer, epoch, lamda):
+def train(args, loader_train, net, task_id, criterion_cls, previous_net, optimizer, epoch, lamda, old_classes):
     acc_meter = AverageMeter()
     loss_meter = AverageMeter()
     net.train()
-    memory_iterator = iter(loader_memory) if (task_id > 0 and args.exR) else None
     for batch_id, (inputs, targets, t) in enumerate(loader_train):
-        if memory_iterator is not None:
-            inputs_from_memory, targets_from_memory, memory_iterator = extract_batch_from_memory(memory_iterator, loader_memory, args.batch_size // 2)
-            # print(inputs.shape, inputs_from_memory.shape)
-            inputs = torch.cat((inputs, inputs_from_memory))
-            targets = torch.cat((targets, targets_from_memory))
         inputs, targets = inputs.cuda(), targets.cuda()
         feature, output = net(inputs)
         loss = criterion_cls(output, targets)
@@ -29,20 +23,18 @@ def train(args, loader_train, loader_memory, net, task_id, criterion_cls, previo
                 loss_less_forget = EmbeddingsSimilarity(l2_norm(feature_old), l2_norm(feature))
                 loss += lamda * loss_less_forget
             if args.ranking:
-                index = int(args.batch_size // 2)
-                loss_margin = ucir_ranking(logits=output[index:],
-                                        targets=targets[index:],
+                mask =[False if i in old_classes else True for i in targets]
+                #index = torch.where(targets == x)
+                loss_margin = ucir_ranking(logits=output[mask],
+                                        targets=targets[mask],
                                         task_size=args.increment,
-                                        nb_negatives=max(2, args.increment),
-                                        margin=0.5
+                                        nb_negatives=args.knegatives,
+                                        margin=args.ranking
                                         )
                 loss += loss_margin
-    #     if args.mimic:
-    #         pass
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
-        
         acc_training = accuracy(output, targets, topk=(1,))
         acc_meter.update(acc_training[0].item(), inputs.size(0))
         loss_meter.update(loss.item(), inputs.size(0))

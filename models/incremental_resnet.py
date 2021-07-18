@@ -16,7 +16,10 @@ class Incremental_ResNet(nn.Module):
             self.backbone = resnet18(pretrained=False, num_classes=starting_classes)
         self.feat_size = self.backbone.out_dim
         #self.fc1 = nn.Linear(self.feat_size, starting_classes, bias=not(self.cosine))
-        self.fc1 = CosineClassifier(self.feat_size, starting_classes)
+        if self.cosine:
+            self.fc1 = CosineClassifier(self.feat_size, starting_classes)
+        else:
+            self.fc1 = nn.Linear(self.feat_size, starting_classes)
 
     def forward(self, x):
         x = self.backbone(x)  # get features
@@ -29,7 +32,10 @@ class Incremental_ResNet(nn.Module):
 
         old_classes = self.fc1.weight.data.shape[0]
         old_weight = self.fc1.weight.data
-        self.fc1 = CosineClassifier(self.feat_size, old_classes + new_classes)
+        if self.cosine:
+            self.fc1 = CosineClassifier(self.feat_size, old_classes + new_classes)
+        else:
+            self.fc1 = nn.Linear(self.feat_size, old_classes + new_classes)
         self.fc1.weight.data[:old_classes] = old_weight
 
 
@@ -55,5 +61,3 @@ def create(dataset, classes, cosine):
     if dataset not in __factory.keys():
         raise KeyError(f"Unknown Model: {dataset}")
     return Incremental_ResNet(__factory[dataset], starting_classes=classes, cosine=cosine)
-
-    

@@ -7,7 +7,7 @@ from models import create
 from continuum.datasets import CIFAR100
 from continuum import ClassIncremental
 import models
-from train import train
+from train import train, balanced_finetuning
 from validate import validate
 from utils.ExemplarSet import ExemplarSet
 from utils.utils import get_all_images_per_class
@@ -38,12 +38,18 @@ parser.add_argument('--weight_decay', type=float, default=5e-4,help='weight deca
 parser.add_argument('--selection', type=str, default="herding",  help='type of selection of exemplar')
 parser.add_argument("--exR", action="store_true", default=True, help="experience replay")
 parser.add_argument("--cosine", action="store_true", default=True, help="cosine classifier")
+parser.add_argument("--class_balance_finetuning", action="store_true", default=False, help="class_balance_finetuning ")
+parser.add_argument('--ft_epochs', default=20, type=int, help='Epochs for class balance finetune')
+parser.add_argument('--ft_base_lr', default=0.01, type=float,help='Base learning rate for class balance finetune')
+parser.add_argument('--ft_lr_strat', default=10, type=int, nargs='+', help='Lr_strat for class balance finetune')
 parser.add_argument("--less_forg", action="store_true", default=True, help="less forgetting loss")
 parser.add_argument("--ranking", action="store_true", default=True, help="loss margin ranking")
-scheduling = [80, 120] # fix in parse
+
 parser.add_argument("--list", nargs="+", default=["80", "120"])
 
 args = parser.parse_args()
+#print(args.ft_lr_strat)
+#print([int(args.ft_lr_strat)])
 model = create("cifar100", args.start, args.cosine)
 model.cuda()
 dataset_train, dataset_test = get_dataset(args.dataset)
@@ -85,21 +91,44 @@ for task_id, train_taskset in enumerate(scenario_train):
         acc_val, loss_val = validate(model, val_loader)
         if acc_val > best_acc_on_task:
             best_acc_on_task = acc_val
-            save_model(model, task_id)
+        #     print(f"Saving best model\t ACC:{best_acc_on_task}")
+        #     save_model(model, task_id)
         scheduler_lr.step()
         print(f"VALIDATION \t Epoch: {epoch}/{args.epochs}\t loss: {loss_val}\t acc: {acc_val}")
     # load best ckpt
-    model = load_model(model, task_id)
-    model.cuda()
-    accs.append(best_acc_on_task)
-    print(f"ACCURACY \t  {acc_val}")
-    if task_id < scenario_train.nb_tasks - 1:
-        if args.exR:
-            for c in task_classes:
-                images_in_c, labels_in_c = get_all_images_per_class(train_taskset, c)
-                indexes = perform_selection(args, images_in_c, labels_in_c, model, val_transform)
-                exemplar_set.update_data_memory(images_in_c[indexes], labels_in_c[indexes])
-        previous_net = copy.deepcopy(model)
+    #print("Loading best model...")
+    #model = load_model(model, task_id)
+    #model.cuda()
+
+    #if task_id < scenario_train.nb_tasks - 1:
+    if args.exR:
+        print(f"Selecting {args.rehearsal} exemplar per class from task {task_id}")
+        for c in task_classes:
+            images_in_c, labels_in_c = get_all_images_per_class(train_taskset, c)
+            indexes = perform_selection(args, images_in_c, labels_in_c, model, val_transform)
+            exemplar_set.update_data_memory(images_in_c[indexes], labels_in_c[indexes])
+        
+    if args.class_balance_finetuning and task_id > 0:
+        print("Class Balance Finetuning")
+        optimizer = optim.SGD(model.parameters(), lr=args.ft_base_lr, momentum=args.momentum, weight_decay=args.weight_decay)
+        scheduler_lr = MultiStepLR(optimizer, milestones=[int(args.ft_lr_strat)], gamma=args.gamma)
+        loader_balanced = DataLoader(exemplar_set, batch_size=args.batch_size, shuffle=True)
+        best_acc_on_task = 0
+        for epoch in range(args.ft_epochs):
+            balanced_finetuning(args, loader_balanced, model, task_id, criterion_cls, optimizer,epoch)
+            acc_val, loss_val = validate(model, val_loader)
+            print(f"VALIDATION \t Epoch: {epoch}/{args.ft_epochs}\t loss: {loss_val}\t acc: {acc_val}")
+            if acc_val > best_acc_on_task:
+                best_acc_on_task = acc_val
+            scheduler_lr.step()
+        #print(f"VALIDATION \t Epoch: {epoch}/{args.epochs}\t loss: {loss_val}\t acc: {acc_val}")
+        accs.append(best_acc_on_task)
+        #print(f"ACCURACY \t  {acc_val}")
+    else:
+        accs.append(best_acc_on_task)
+    if task_id < scenario_train.nb_tasks - 1 :  
+        #print("Expanding")
+        previous_net = copy.deepcopy(model)         
         model.expand_classes(scenario_train[task_id+1].nb_classes)
         model.cuda()
         task_classes = []

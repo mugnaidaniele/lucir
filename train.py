@@ -42,7 +42,22 @@ def train(args, loader_train, net, task_id, criterion_cls, previous_net, optimiz
     print(f"TRAIN \t Epoch: {epoch}/{args.epochs}\t loss: {loss_meter.avg}\t acc: {acc_meter.avg}")
 
 
-
+def balanced_finetuning(args, loader_train, net, task_id, criterion_cls, optimizer, epoch):
+    acc_meter = AverageMeter()
+    loss_meter = AverageMeter()
+    net.train()
+    for batch_id, (inputs, targets) in enumerate(loader_train):
+        inputs, targets = inputs.cuda(), targets.cuda()
+        _, output = net(inputs)
+        loss = criterion_cls(output, targets)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+        acc_training = accuracy(output, targets, topk=(1,))
+        acc_meter.update(acc_training[0].item(), inputs.size(0))
+        loss_meter.update(loss.item(), inputs.size(0))
+    print(f"BALANCED TRAIN \t Epoch: {epoch}/{args.ft_epochs}\t loss: {loss_meter.avg}\t acc: {acc_meter.avg}")
+    
 def l2_norm(input, axis=1):
     norm = torch.norm(input, 2, axis, True)
     output = torch.div(input, norm)

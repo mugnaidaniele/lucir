@@ -45,7 +45,7 @@ parser.add_argument('--ft_lr_strat', default=10, type=int, nargs='+', help='Lr_s
 parser.add_argument("--less_forg", action="store_true", default=True, help="less forgetting loss")
 parser.add_argument("--ranking", action="store_true", default=True, help="loss margin ranking")
 
-parser.add_argument("--list", nargs="+", default=["80", "120"])
+parser.add_argument("--list", nargs="+", default=["80", "120"], help="Milestones for learning rate scale")
 
 args = parser.parse_args()
 #print(args.ft_lr_strat)

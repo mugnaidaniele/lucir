@@ -32,3 +32,42 @@ Unofficial Implementation of paper _Learning a Unified Classifier Incrementally 
 
 `--ranking` if True,  _**margin ranking loss**_ constraint is used
 ### Comparison with original results
+
+#### CIFAR-100
+
+<table>
+  <tr>
+    <td>Starting Classes</td>
+    <td>Increment</td>
+    <td colspan="2">Average Incremental Accuracy</td>
+  </tr>
+  <tr>
+    <td>50</td>
+    <td>50</td>
+    <td>69.81</td>
+    <td>Here</td>
+  </tr>
+
+  <tr>
+    <td>50</td>
+    <td>25</td>
+    <td>66.76</td>
+    <td>Here</td>
+  </tr>
+
+  <tr>
+    <td>50</td>
+    <td>10</td>
+    <td>63.42</td>
+    <td>Here</td>
+  </tr>
+
+  <tr>
+    <td>50</td>
+    <td>5</td>
+    <td>60.18</td>
+    <td>Here</td>
+  </tr>
+</table>
+
+#### IMAGENET-100

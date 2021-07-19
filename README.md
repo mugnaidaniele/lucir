@@ -8,6 +8,7 @@ Unofficial Implementation of paper _Learning a Unified Classifier Incrementally 
 `pip install requirements.txt`
 
 ### Running
+`python main.py --args`
 
 ### Hyper-parameters
 

@@ -24,7 +24,7 @@ import copy
 parser = argparse.ArgumentParser(description='Learning unified classifier via rebalancing')
 parser.add_argument('--dataset', type=str, default="cifar100", metavar='BATCH', help='dataset')
 parser.add_argument('--start', type=int, default=50, help='starting classes')
-parser.add_argument('--increment', type=int, default=50, help='increment classes at each task')
+parser.add_argument('--increment', type=int, default=10, help='increment classes at each task')
 parser.add_argument('--batch_size', type=int, default=128, help='batch size')
 parser.add_argument('--lr', type=float, default=0.1, help='learning rate for cnn')
 parser.add_argument('--momentum', type=float, default=0.9 , help='momentum')
@@ -70,7 +70,7 @@ accs = []
 task_classes = []
 for task_id, train_taskset in enumerate(scenario_train):
     task_classes.extend(train_taskset.get_classes())
-    if task_id > 0:
+    if task_id > 0 and args.exR:
         train_taskset.add_samples(exemplar_set.data, exemplar_set.targets)
     print(f"TASK {task_id}")
     val_taskset = scenario_val[:task_id+1]

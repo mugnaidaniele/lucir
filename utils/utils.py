@@ -115,13 +115,11 @@ def get_dataset(dataset):
     return dataset_train, dataset_test
 
 def get_sampler(target):
-    class_sample_count = np.array(
-    [len(np.where(target == t)[0]) for t in np.unique(target)])
+    class_sample_count = np.array([len(np.where(target == t)[0]) for t in np.unique(target)])
     weight = 1. / class_sample_count
     samples_weight = np.array([weight[t] for t in target])
-
     samples_weight = torch.from_numpy(samples_weight)
-    samples_weigth = samples_weight.double()
+    samples_weight = samples_weight.double()
     sampler = WeightedRandomSampler(samples_weight, len(samples_weight))
     return sampler
 

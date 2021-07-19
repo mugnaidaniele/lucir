@@ -24,7 +24,7 @@ import copy
 parser = argparse.ArgumentParser(description='Learning unified classifier via rebalancing')
 parser.add_argument('--dataset', type=str, default="cifar100", metavar='BATCH', help='dataset')
 parser.add_argument('--start', type=int, default=50, help='starting classes')
-parser.add_argument('--increment', type=int, default=10, help='increment classes at each task')
+parser.add_argument('--increment', type=int, default=50, help='increment classes at each task')
 parser.add_argument('--batch_size', type=int, default=128, help='batch size')
 parser.add_argument('--lr', type=float, default=0.1, help='learning rate for cnn')
 parser.add_argument('--momentum', type=float, default=0.9 , help='momentum')

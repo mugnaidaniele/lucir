@@ -5,15 +5,16 @@ import math
 from models.resnet_cifar import resnet32
 from models.resnet_imagenet import resnet18
 from models.CosineClassifier import CosineClassifier
-
+from models.my_resnet import resnet_rebuffi
 class Incremental_ResNet(nn.Module):
     def __init__(self,backbone="resnet32", starting_classes=10, cosine=True):
         super(Incremental_ResNet, self).__init__()
         self.cosine = cosine
-        if backbone == "resnet32":
-            self.backbone = resnet32(num_classes=starting_classes)
-        elif backbone =="resnet18":
-            self.backbone = resnet18(pretrained=False, num_classes=starting_classes)
+        self.backbone = resnet_rebuffi()
+        # if backbone == "resnet32":
+        #     self.backbone = resnet32(num_classes=starting_classes)
+        # elif backbone =="resnet18":
+        #     self.backbone = resnet18(pretrained=False, num_classes=starting_classes)
         self.feat_size = self.backbone.out_dim
         #self.fc1 = nn.Linear(self.feat_size, starting_classes, bias=not(self.cosine))
         if self.cosine:

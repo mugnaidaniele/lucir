@@ -22,6 +22,8 @@ import copy
 
 
 parser = argparse.ArgumentParser(description='Learning unified classifier via rebalancing')
+parser.add_argument('--seed', type=int, default=1, metavar='S',
+                    help='random seed (default: 1)')
 parser.add_argument('--dataset', type=str, default="cifar100", metavar='BATCH', help='dataset')
 parser.add_argument('--start', type=int, default=50, help='starting classes')
 parser.add_argument('--increment', type=int, default=50, help='increment classes at each task')
@@ -48,8 +50,8 @@ parser.add_argument("--ranking", action="store_true", default=True, help="loss m
 parser.add_argument("--list", nargs="+", default=["80", "120"], help="Milestones for learning rate scale")
 
 args = parser.parse_args()
-#print(args.ft_lr_strat)
-#print([int(args.ft_lr_strat)])
+torch.cuda.manual_seed(args.seed)
+
 model = create("cifar100", args.start, args.cosine)
 model.cuda()
 dataset_train, dataset_test = get_dataset(args.dataset)
@@ -91,14 +93,14 @@ for task_id, train_taskset in enumerate(scenario_train):
         acc_val, loss_val = validate(model, val_loader)
         if acc_val > best_acc_on_task:
             best_acc_on_task = acc_val
-        #     print(f"Saving best model\t ACC:{best_acc_on_task}")
-        #     save_model(model, task_id)
+            print(f"Saving best model\t ACC:{best_acc_on_task}")
+            save_model(model, task_id)
         scheduler_lr.step()
         print(f"VALIDATION \t Epoch: {epoch}/{args.epochs}\t loss: {loss_val}\t acc: {acc_val}")
-    # load best ckpt
-    #print("Loading best model...")
-    #model = load_model(model, task_id)
-    #model.cuda()
+    load_model(model, task_id)
+    print("Loading best model...")
+    model = load_model(model, task_id)
+    model.cuda()
 
     #if task_id < scenario_train.nb_tasks - 1:
     if args.exR:
